@@ -1,0 +1,23 @@
+schema: spec-driven
+
+context: |
+  Tech stack: PHP 8.1+ (backend), Vanilla JS ES6+ (frontend), CSS3
+  Project type: FreshRSS extension (xExtension-FilterBuilder)
+  FreshRSS extension conventions:
+    - Directory name: xExtension-FilterBuilder
+    - Required files: metadata.json, extension.php
+    - Main class: FilterBuilderExtension extends Minz_Extension
+    - JS/CSS injection: Minz_View::appendScript/appendStyle in init()
+    - Data to frontend: js_vars hook → window.context.filterBuilder
+    - No external JS frameworks (Vanilla JS only)
+    - No build tools (plain .js and .css files)
+  Domain: Visual search filter builder for FreshRSS search syntax
+  FreshRSS search syntax supports: intitle:, intext:, inurl:, author:, #tag,
+    f:, c:, L:, label:, e:, date:, pubdate:, userdate:, S:, search:,
+    AND (implicit), OR (explicit), NOT (!/-), parentheses grouping, /regex/im
+
+rules:
+  tasks:
+    - Each task must have exact file paths in Files: section
+    - Each task must have a concrete Verify: shell command
+    - No TODO or TBD in plan or implement stages
