@@ -40,9 +40,9 @@
 
 ## 运行要求
 
-- FreshRSS `>= 1.21`（扩展接口兼容）
+- FreshRSS `>= 1.21`（当前测试目标）
 - Node.js（用于本地测试验证）
-- 目标 FreshRSS 环境需有 PHP 运行时
+- 目标 FreshRSS 环境需有 PHP `>= 8.1`
 
 ## 安装方式
 

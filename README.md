@@ -40,9 +40,9 @@ Experimental but working.
 
 ## Requirements
 
-- FreshRSS `>= 1.21` (extension API compatibility)
+- FreshRSS `>= 1.21` (tested target)
 - Node.js (for local test verification)
-- PHP runtime in target FreshRSS environment
+- PHP `>= 8.1` in target FreshRSS environment
 
 ## Installation
 

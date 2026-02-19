@@ -2,14 +2,13 @@
 declare(strict_types=1);
 
 final class FilterBuilderExtension extends Minz_Extension {
-
-    #[\Override]
     public function init(): void {
         parent::init();
         $this->registerTranslates();
         Minz_View::appendStyle($this->getFileUrl('filter-builder.css'));
         Minz_View::appendScript($this->getFileUrl('filter-builder.js'));
-        $this->registerHook(Minz_HookType::JsVars, [$this, 'injectData']);
+
+        $this->registerHook('js_vars', [$this, 'injectData']);
     }
 
     /**

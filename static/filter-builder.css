@@ -61,6 +61,10 @@
 /* Conditions container */
 .fb-conditions {
   margin-bottom: 12px;
+  min-height: 56px;
+  border: 1px dashed var(--fb-border);
+  border-radius: 3px;
+  padding: 8px;
 }
 
 /* OR controls */
