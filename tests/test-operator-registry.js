@@ -146,6 +146,7 @@ if (registry) {
     registry.forEach(op => {
         assert(typeof op.key === 'string' && op.key.length > 0, op.key + ' should have key');
         assert(typeof op.label === 'string' && op.label.length > 0, op.key + ' should have label');
+        assert(typeof op.i18nKey === 'string' && op.i18nKey.indexOf('operator_') === 0, op.key + ' should have i18nKey');
         assert(['text', 'multiselect', 'date', 'savedquery'].includes(op.valueType), op.key + ' valueType should be text|multiselect|date|savedquery, got ' + op.valueType);
         assert(typeof op.prefix === 'string', op.key + ' should have prefix (string)');
     });

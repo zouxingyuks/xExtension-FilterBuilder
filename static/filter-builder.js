@@ -11,9 +11,18 @@ const FilterBuilder = (function () {
     let _toggleBtn = null;
     let _panel = null;
     let _observer = null;
+    let _i18n = {};
     var _groups = [{ negate: false, conditions: [{ operator: 'intitle', value: '', negate: false }] }];
     var _previewEl = null;
     var _previewTimer = null;
+
+    function t(key, fallback) {
+        var value = _i18n ? _i18n[key] : null;
+        if (typeof value === 'string' && value.length > 0) {
+            return value;
+        }
+        return fallback;
+    }
 
     function mountToggleButton() {
         var existingBtn = document.querySelector('#fb-toggle');
@@ -34,7 +43,7 @@ const FilterBuilder = (function () {
         _toggleBtn.id = 'fb-toggle';
         _toggleBtn.className = 'btn fb-toggle-btn';
         _toggleBtn.type = 'button';
-        _toggleBtn.textContent = 'Build query';
+        _toggleBtn.textContent = t('toggle_btn', 'Build query');
         _toggleBtn.addEventListener('click', togglePanel);
         _searchInput.parentNode.insertBefore(_toggleBtn, _searchInput.nextSibling);
         return true;
@@ -61,7 +70,7 @@ const FilterBuilder = (function () {
         header.className = 'fb-panel-header';
         var title = document.createElement('span');
         title.className = 'fb-panel-title';
-        title.textContent = 'Query Builder';
+        title.textContent = t('panel_title', 'Query Builder');
         var closeBtn = document.createElement('button');
         closeBtn.className = 'btn fb-close-btn';
         closeBtn.type = 'button';
@@ -80,7 +89,7 @@ const FilterBuilder = (function () {
         preview.className = 'fb-preview';
         _previewEl = document.createElement('div');
         _previewEl.className = 'fb-preview-text';
-        _previewEl.textContent = 'No conditions yet';
+        _previewEl.textContent = t('preview_empty', 'No conditions yet');
         preview.appendChild(_previewEl);
 
         var actions = document.createElement('div');
@@ -89,7 +98,7 @@ const FilterBuilder = (function () {
         var fillBtn = document.createElement('button');
         fillBtn.type = 'button';
         fillBtn.className = 'btn fb-fill-search';
-        fillBtn.textContent = 'Copy to search box';
+        fillBtn.textContent = t('fill_search', 'Copy to search box');
         fillBtn.addEventListener('click', function () {
             if (_searchInput) {
                 _searchInput.value = QueryBuilder.build(_groups);
@@ -99,7 +108,7 @@ const FilterBuilder = (function () {
         var searchBtn = document.createElement('button');
         searchBtn.type = 'button';
         searchBtn.className = 'btn fb-search-now';
-        searchBtn.textContent = 'Run search';
+        searchBtn.textContent = t('search_now', 'Run search');
         searchBtn.addEventListener('click', function () {
             var form;
             if (_searchInput) {
@@ -114,7 +123,7 @@ const FilterBuilder = (function () {
         var loadBtn = document.createElement('button');
         loadBtn.type = 'button';
         loadBtn.className = 'btn fb-load-search';
-        loadBtn.textContent = 'Load current search';
+        loadBtn.textContent = t('load_from_search', 'Load current search');
         loadBtn.addEventListener('click', function () {
             loadFromSearchInput();
         });
@@ -194,7 +203,7 @@ const FilterBuilder = (function () {
     function rebuildPreview() {
         var query = QueryBuilder.build(_groups);
         if (_previewEl) {
-            _previewEl.textContent = query || 'No conditions yet';
+            _previewEl.textContent = query || t('preview_empty', 'No conditions yet');
         }
         return query;
     }
@@ -249,7 +258,7 @@ const FilterBuilder = (function () {
         var addGroupBtn = document.createElement('button');
         addGroupBtn.type = 'button';
         addGroupBtn.className = 'btn fb-add-group';
-        addGroupBtn.textContent = '+ Add OR group';
+        addGroupBtn.textContent = '+ ' + t('add_or_group', 'Add OR group');
         addGroupBtn.addEventListener('click', function () {
             _groups.push({ negate: false, conditions: [{ operator: 'intitle', value: '', negate: false }] });
             renderGroups();
@@ -268,21 +277,21 @@ const FilterBuilder = (function () {
     }
 
     var OPERATOR_REGISTRY = [
-        { key: 'intitle',   label: 'Title',           valueType: 'text',        prefix: 'intitle:',   supportsRegex: true },
-        { key: 'intext',    label: 'Body text',       valueType: 'text',        prefix: 'intext:',    supportsRegex: true },
-        { key: 'inurl',     label: 'URL',             valueType: 'text',        prefix: 'inurl:',     supportsRegex: true },
-        { key: 'author',    label: 'Author',          valueType: 'text',        prefix: 'author:',    supportsRegex: true },
-        { key: 'tag',       label: 'Tag',             valueType: 'text',        prefix: '#',          supportsRegex: true },
-        { key: 'free',      label: 'Free text',       valueType: 'text',        prefix: '',           supportsRegex: true },
-        { key: 'f',         label: 'Feed',            valueType: 'multiselect', prefix: 'f:',         dataKey: 'feeds' },
-        { key: 'c',         label: 'Category',        valueType: 'multiselect', prefix: 'c:',         dataKey: 'categories' },
-        { key: 'L',         label: 'Label',           valueType: 'multiselect', prefix: 'L:',         dataKey: 'labels' },
-        { key: 'label',     label: 'Label (alt)',     valueType: 'multiselect', prefix: 'label:',     dataKey: 'labels' },
-        { key: 'e',         label: 'Entry ID',        valueType: 'text',        prefix: 'e:',         supportsRegex: true },
-        { key: 'date',      label: 'Date',            valueType: 'date',        prefix: 'date:',      dateModes: ['relative', 'range', 'point'] },
-        { key: 'pubdate',   label: 'Publish date',    valueType: 'date',        prefix: 'pubdate:',   dateModes: ['relative', 'range', 'point'] },
-        { key: 'userdate',  label: 'User date',       valueType: 'date',        prefix: 'userdate:',  dateModes: ['relative', 'range', 'point'] },
-        { key: 'S',         label: 'Saved query',     valueType: 'savedquery',  prefix: 'S:' },
+        { key: 'intitle',   label: 'Title',       i18nKey: 'operator_intitle',  valueType: 'text',        prefix: 'intitle:',   supportsRegex: true },
+        { key: 'intext',    label: 'Body text',   i18nKey: 'operator_intext',   valueType: 'text',        prefix: 'intext:',    supportsRegex: true },
+        { key: 'inurl',     label: 'URL',         i18nKey: 'operator_inurl',    valueType: 'text',        prefix: 'inurl:',     supportsRegex: true },
+        { key: 'author',    label: 'Author',      i18nKey: 'operator_author',   valueType: 'text',        prefix: 'author:',    supportsRegex: true },
+        { key: 'tag',       label: 'Tag',         i18nKey: 'operator_tag',      valueType: 'text',        prefix: '#',          supportsRegex: true },
+        { key: 'free',      label: 'Free text',   i18nKey: 'operator_free',     valueType: 'text',        prefix: '',           supportsRegex: true },
+        { key: 'f',         label: 'Feed',        i18nKey: 'operator_f',        valueType: 'multiselect', prefix: 'f:',         dataKey: 'feeds' },
+        { key: 'c',         label: 'Category',    i18nKey: 'operator_c',        valueType: 'multiselect', prefix: 'c:',         dataKey: 'categories' },
+        { key: 'L',         label: 'Label ID',    i18nKey: 'operator_L',        valueType: 'multiselect', prefix: 'L:',         dataKey: 'labels' },
+        { key: 'label',     label: 'Label',       i18nKey: 'operator_label',    valueType: 'multiselect', prefix: 'label:',     dataKey: 'labels' },
+        { key: 'e',         label: 'Entry ID',    i18nKey: 'operator_e',        valueType: 'text',        prefix: 'e:',         supportsRegex: true },
+        { key: 'date',      label: 'Date',        i18nKey: 'operator_date',     valueType: 'date',        prefix: 'date:',      dateModes: ['relative', 'range', 'point'] },
+        { key: 'pubdate',   label: 'Publish date',i18nKey: 'operator_pubdate',  valueType: 'date',        prefix: 'pubdate:',   dateModes: ['relative', 'range', 'point'] },
+        { key: 'userdate',  label: 'User date',   i18nKey: 'operator_userdate', valueType: 'date',        prefix: 'userdate:',  dateModes: ['relative', 'range', 'point'] },
+        { key: 'S',         label: 'Saved query', i18nKey: 'operator_S',        valueType: 'savedquery',  prefix: 'S:' },
     ];
 
     function renderValueInput(op, condition, onChange) {
@@ -400,7 +409,7 @@ const FilterBuilder = (function () {
         for (oi = 0; oi < OPERATOR_REGISTRY.length; oi++) {
             opt = document.createElement('option');
             opt.value = OPERATOR_REGISTRY[oi].key;
-            opt.textContent = OPERATOR_REGISTRY[oi].label;
+            opt.textContent = t(OPERATOR_REGISTRY[oi].i18nKey, OPERATOR_REGISTRY[oi].label);
             opSelect.appendChild(opt);
         }
         opSelect.value = cond.operator;
@@ -524,7 +533,7 @@ const FilterBuilder = (function () {
 
         var label = document.createElement('span');
         label.className = 'fb-group-label';
-        label.textContent = 'AND (all must match)';
+        label.textContent = t('group_and', 'AND (all must match)');
 
         var removeBtn = document.createElement('button');
         removeBtn.type = 'button';
@@ -563,7 +572,7 @@ const FilterBuilder = (function () {
         var addBtn = document.createElement('button');
         addBtn.type = 'button';
         addBtn.className = 'btn fb-add-condition';
-        addBtn.textContent = '+ Add condition';
+        addBtn.textContent = '+ ' + t('add_condition', 'Add condition');
         addBtn.addEventListener('click', function () {
             var newCond = { operator: 'intitle', value: '', negate: false };
             var idx = grp.conditions.length;
@@ -858,6 +867,7 @@ const FilterBuilder = (function () {
             labels: ctx.labels || [],
             userQueries: ctx.userQueries || [],
         };
+        _i18n = ctx.i18n || {};
         ensureMounted();
         setupAutoMount();
     }
