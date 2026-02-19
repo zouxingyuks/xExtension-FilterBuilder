@@ -10,25 +10,58 @@ const FilterBuilder = (function () {
     let _searchInput = null;
     let _toggleBtn = null;
     let _panel = null;
-    var _groups = [{ negate: false, conditions: [] }];
+    let _observer = null;
+    let _i18n = {};
+    var _groups = [{ negate: false, conditions: [{ operator: 'intitle', value: '', negate: false }] }];
     var _previewEl = null;
     var _previewTimer = null;
 
+    function t(key, fallback) {
+        var value = _i18n ? _i18n[key] : null;
+        if (typeof value === 'string' && value.length > 0) {
+            return value;
+        }
+        return fallback;
+    }
+
     function mountToggleButton() {
+        var existingBtn = document.querySelector('#fb-toggle');
+        if (existingBtn) {
+            _toggleBtn = existingBtn;
+            _searchInput = document.querySelector('input[name="search"]') || document.querySelector('#search');
+            return true;
+        }
+
         _searchInput = document.querySelector('input[name="search"]');
+        if (!_searchInput) {
+            _searchInput = document.querySelector('#search');
+        }
         if (!_searchInput) { return false; }
+        if (!_searchInput.parentNode) { return false; }
 
         _toggleBtn = document.createElement('button');
         _toggleBtn.id = 'fb-toggle';
         _toggleBtn.className = 'btn fb-toggle-btn';
         _toggleBtn.type = 'button';
-        _toggleBtn.textContent = 'Filter';
+        _toggleBtn.textContent = t('toggle_btn', 'Build query');
         _toggleBtn.addEventListener('click', togglePanel);
         _searchInput.parentNode.insertBefore(_toggleBtn, _searchInput.nextSibling);
         return true;
     }
 
     function mountPanel() {
+        var existingPanel;
+        if (_panel && _panel.isConnected) {
+            return;
+        }
+
+        existingPanel = document.querySelector('#fb-panel');
+        if (existingPanel) {
+            _panel = existingPanel;
+            _previewEl = _panel.querySelector('.fb-preview-text');
+            return;
+        }
+
         _panel = document.createElement('div');
         _panel.id = 'fb-panel';
         _panel.className = 'fb-panel fb-hidden';
@@ -37,7 +70,7 @@ const FilterBuilder = (function () {
         header.className = 'fb-panel-header';
         var title = document.createElement('span');
         title.className = 'fb-panel-title';
-        title.textContent = 'Filter Builder';
+        title.textContent = t('panel_title', 'Query Builder');
         var closeBtn = document.createElement('button');
         closeBtn.className = 'btn fb-close-btn';
         closeBtn.type = 'button';
@@ -56,7 +89,7 @@ const FilterBuilder = (function () {
         preview.className = 'fb-preview';
         _previewEl = document.createElement('div');
         _previewEl.className = 'fb-preview-text';
-        _previewEl.textContent = '(empty)';
+        _previewEl.textContent = t('preview_empty', 'No conditions yet');
         preview.appendChild(_previewEl);
 
         var actions = document.createElement('div');
@@ -65,7 +98,7 @@ const FilterBuilder = (function () {
         var fillBtn = document.createElement('button');
         fillBtn.type = 'button';
         fillBtn.className = 'btn fb-fill-search';
-        fillBtn.textContent = 'Fill search box';
+        fillBtn.textContent = t('fill_search', 'Copy to search box');
         fillBtn.addEventListener('click', function () {
             if (_searchInput) {
                 _searchInput.value = QueryBuilder.build(_groups);
@@ -75,7 +108,7 @@ const FilterBuilder = (function () {
         var searchBtn = document.createElement('button');
         searchBtn.type = 'button';
         searchBtn.className = 'btn fb-search-now';
-        searchBtn.textContent = 'Search now';
+        searchBtn.textContent = t('search_now', 'Run search');
         searchBtn.addEventListener('click', function () {
             var form;
             if (_searchInput) {
@@ -90,7 +123,7 @@ const FilterBuilder = (function () {
         var loadBtn = document.createElement('button');
         loadBtn.type = 'button';
         loadBtn.className = 'btn fb-load-search';
-        loadBtn.textContent = 'Load from search box';
+        loadBtn.textContent = t('load_from_search', 'Load current search');
         loadBtn.addEventListener('click', function () {
             loadFromSearchInput();
         });
@@ -108,18 +141,69 @@ const FilterBuilder = (function () {
         document.body.appendChild(_panel);
     }
 
+    function ensureMounted() {
+        if (!mountToggleButton()) {
+            return false;
+        }
+        mountPanel();
+        return true;
+    }
+
+    function setupAutoMount() {
+        var retryDelays;
+        if (!_observer && typeof MutationObserver !== 'undefined' && document.body) {
+            _observer = new MutationObserver(function () {
+                if (!_toggleBtn || !_toggleBtn.isConnected || !_panel || !_panel.isConnected) {
+                    ensureMounted();
+                }
+            });
+            _observer.observe(document.body, { childList: true, subtree: true });
+        }
+
+        retryDelays = [0, 300, 1000, 2500];
+        retryDelays.forEach(function (delay) {
+            setTimeout(function () {
+                ensureMounted();
+            }, delay);
+        });
+    }
+
+    function clearElement(el) {
+        while (el.firstChild) {
+            el.removeChild(el.firstChild);
+        }
+    }
+
+    function normalizeGroups(groups) {
+        var safeGroups = Array.isArray(groups) ? groups : [];
+        if (safeGroups.length === 0) {
+            return [{ negate: false, conditions: [{ operator: 'intitle', value: '', negate: false }] }];
+        }
+
+        var i;
+        for (i = 0; i < safeGroups.length; i++) {
+            if (!Array.isArray(safeGroups[i].conditions)) {
+                safeGroups[i].conditions = [];
+            }
+            if (safeGroups[i].conditions.length === 0) {
+                safeGroups[i].conditions.push({ operator: 'intitle', value: '', negate: false });
+            }
+        }
+        return safeGroups;
+    }
+
     function positionPanel() {
         if (!_searchInput || !_panel) { return; }
         var rect = _searchInput.getBoundingClientRect();
-        _panel.style.position = 'absolute';
-        _panel.style.top = (rect.bottom + window.scrollY) + 'px';
-        _panel.style.left = (rect.left + window.scrollX) + 'px';
+        _panel.style.position = 'fixed';
+        _panel.style.top = rect.bottom + 'px';
+        _panel.style.left = rect.left + 'px';
     }
 
     function rebuildPreview() {
         var query = QueryBuilder.build(_groups);
         if (_previewEl) {
-            _previewEl.textContent = query || '(empty)';
+            _previewEl.textContent = query || t('preview_empty', 'No conditions yet');
         }
         return query;
     }
@@ -135,7 +219,7 @@ const FilterBuilder = (function () {
     function loadFromSearchInput() {
         var query = (_searchInput && _searchInput.value) ? _searchInput.value : '';
         var parsed = QueryParser.parse(query);
-        _groups = parsed.groups;
+        _groups = normalizeGroups(parsed.groups);
         renderGroups();
         rebuildPreview();
     }
@@ -146,9 +230,7 @@ const FilterBuilder = (function () {
         var orControlsEl = _panel.querySelector('.fb-or-controls');
         if (!conditionsEl || !orControlsEl) { return; }
 
-        conditionsEl.children = [];
-        conditionsEl.childNodes = [];
-        if (conditionsEl.innerHTML !== undefined) { conditionsEl.innerHTML = ''; }
+        clearElement(conditionsEl);
 
         var i;
         for (i = 0; i < _groups.length; i++) {
@@ -162,7 +244,7 @@ const FilterBuilder = (function () {
                 }, function () {
                     _groups.splice(idx, 1);
                     if (_groups.length === 0) {
-                        _groups.push({ negate: false, conditions: [] });
+                        _groups.push({ negate: false, conditions: [{ operator: 'intitle', value: '', negate: false }] });
                     }
                     renderGroups();
                     schedulePreview();
@@ -171,14 +253,12 @@ const FilterBuilder = (function () {
             })(i);
         }
 
-        orControlsEl.children = [];
-        orControlsEl.childNodes = [];
-        if (orControlsEl.innerHTML !== undefined) { orControlsEl.innerHTML = ''; }
+        clearElement(orControlsEl);
 
         var addGroupBtn = document.createElement('button');
         addGroupBtn.type = 'button';
         addGroupBtn.className = 'btn fb-add-group';
-        addGroupBtn.textContent = '+ OR Group';
+        addGroupBtn.textContent = '+ ' + t('add_or_group', 'Add OR group');
         addGroupBtn.addEventListener('click', function () {
             _groups.push({ negate: false, conditions: [{ operator: 'intitle', value: '', negate: false }] });
             renderGroups();
@@ -197,21 +277,21 @@ const FilterBuilder = (function () {
     }
 
     var OPERATOR_REGISTRY = [
-        { key: 'intitle',   label: 'Title',           valueType: 'text',        prefix: 'intitle:',   supportsRegex: true },
-        { key: 'intext',    label: 'Body text',       valueType: 'text',        prefix: 'intext:',    supportsRegex: true },
-        { key: 'inurl',     label: 'URL',             valueType: 'text',        prefix: 'inurl:',     supportsRegex: true },
-        { key: 'author',    label: 'Author',          valueType: 'text',        prefix: 'author:',    supportsRegex: true },
-        { key: 'tag',       label: 'Tag',             valueType: 'text',        prefix: '#',          supportsRegex: true },
-        { key: 'free',      label: 'Free text',       valueType: 'text',        prefix: '',           supportsRegex: true },
-        { key: 'f',         label: 'Feed',            valueType: 'multiselect', prefix: 'f:',         dataKey: 'feeds' },
-        { key: 'c',         label: 'Category',        valueType: 'multiselect', prefix: 'c:',         dataKey: 'categories' },
-        { key: 'L',         label: 'Label',           valueType: 'multiselect', prefix: 'L:',         dataKey: 'labels' },
-        { key: 'label',     label: 'Label (alt)',     valueType: 'multiselect', prefix: 'label:',     dataKey: 'labels' },
-        { key: 'e',         label: 'Entry ID',        valueType: 'text',        prefix: 'e:',         supportsRegex: true },
-        { key: 'date',      label: 'Date',            valueType: 'date',        prefix: 'date:',      dateModes: ['relative', 'range', 'point'] },
-        { key: 'pubdate',   label: 'Publish date',    valueType: 'date',        prefix: 'pubdate:',   dateModes: ['relative', 'range', 'point'] },
-        { key: 'userdate',  label: 'User date',       valueType: 'date',        prefix: 'userdate:',  dateModes: ['relative', 'range', 'point'] },
-        { key: 'S',         label: 'Saved query',     valueType: 'savedquery',  prefix: 'S:' },
+        { key: 'intitle',   label: 'Title',       i18nKey: 'operator_intitle',  valueType: 'text',        prefix: 'intitle:',   supportsRegex: true },
+        { key: 'intext',    label: 'Body text',   i18nKey: 'operator_intext',   valueType: 'text',        prefix: 'intext:',    supportsRegex: true },
+        { key: 'inurl',     label: 'URL',         i18nKey: 'operator_inurl',    valueType: 'text',        prefix: 'inurl:',     supportsRegex: true },
+        { key: 'author',    label: 'Author',      i18nKey: 'operator_author',   valueType: 'text',        prefix: 'author:',    supportsRegex: true },
+        { key: 'tag',       label: 'Tag',         i18nKey: 'operator_tag',      valueType: 'text',        prefix: '#',          supportsRegex: true },
+        { key: 'free',      label: 'Free text',   i18nKey: 'operator_free',     valueType: 'text',        prefix: '',           supportsRegex: true },
+        { key: 'f',         label: 'Feed',        i18nKey: 'operator_f',        valueType: 'multiselect', prefix: 'f:',         dataKey: 'feeds' },
+        { key: 'c',         label: 'Category',    i18nKey: 'operator_c',        valueType: 'multiselect', prefix: 'c:',         dataKey: 'categories' },
+        { key: 'L',         label: 'Label ID',    i18nKey: 'operator_L',        valueType: 'multiselect', prefix: 'L:',         dataKey: 'labels' },
+        { key: 'label',     label: 'Label',       i18nKey: 'operator_label',    valueType: 'multiselect', prefix: 'label:',     dataKey: 'labels' },
+        { key: 'e',         label: 'Entry ID',    i18nKey: 'operator_e',        valueType: 'text',        prefix: 'e:',         supportsRegex: true },
+        { key: 'date',      label: 'Date',        i18nKey: 'operator_date',     valueType: 'date',        prefix: 'date:',      dateModes: ['relative', 'range', 'point'] },
+        { key: 'pubdate',   label: 'Publish date',i18nKey: 'operator_pubdate',  valueType: 'date',        prefix: 'pubdate:',   dateModes: ['relative', 'range', 'point'] },
+        { key: 'userdate',  label: 'User date',   i18nKey: 'operator_userdate', valueType: 'date',        prefix: 'userdate:',  dateModes: ['relative', 'range', 'point'] },
+        { key: 'S',         label: 'Saved query', i18nKey: 'operator_S',        valueType: 'savedquery',  prefix: 'S:' },
     ];
 
     function renderValueInput(op, condition, onChange) {
@@ -329,7 +409,7 @@ const FilterBuilder = (function () {
         for (oi = 0; oi < OPERATOR_REGISTRY.length; oi++) {
             opt = document.createElement('option');
             opt.value = OPERATOR_REGISTRY[oi].key;
-            opt.textContent = OPERATOR_REGISTRY[oi].label;
+            opt.textContent = t(OPERATOR_REGISTRY[oi].i18nKey, OPERATOR_REGISTRY[oi].label);
             opSelect.appendChild(opt);
         }
         opSelect.value = cond.operator;
@@ -339,8 +419,7 @@ const FilterBuilder = (function () {
 
         function rebuildValueArea() {
             var op, valEl, regexBtn, modContainer, mods, mi;
-            valueArea.children = [];
-            valueArea.childNodes = [];
+            clearElement(valueArea);
             op = getOperatorByKey(cond.operator);
             if (!op) { return; }
 
@@ -454,7 +533,7 @@ const FilterBuilder = (function () {
 
         var label = document.createElement('span');
         label.className = 'fb-group-label';
-        label.textContent = 'AND';
+        label.textContent = t('group_and', 'AND (all must match)');
 
         var removeBtn = document.createElement('button');
         removeBtn.type = 'button';
@@ -493,7 +572,7 @@ const FilterBuilder = (function () {
         var addBtn = document.createElement('button');
         addBtn.type = 'button';
         addBtn.className = 'btn fb-add-condition';
-        addBtn.textContent = '+ Condition';
+        addBtn.textContent = '+ ' + t('add_condition', 'Add condition');
         addBtn.addEventListener('click', function () {
             var newCond = { operator: 'intitle', value: '', negate: false };
             var idx = grp.conditions.length;
@@ -788,17 +867,20 @@ const FilterBuilder = (function () {
             labels: ctx.labels || [],
             userQueries: ctx.userQueries || [],
         };
-        if (!mountToggleButton()) { return; }
-        mountPanel();
+        _i18n = ctx.i18n || {};
+        ensureMounted();
+        setupAutoMount();
     }
 
-    // Initialize after FreshRSS global context is loaded
-    if (document.readyState !== 'loading' &&
-        typeof window.context !== 'undefined' &&
-        typeof window.context.extensions !== 'undefined') {
+    function bootstrap() {
         init();
+    }
+
+    document.addEventListener('freshrss:globalContextLoaded', bootstrap, false);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bootstrap, false);
     } else {
-        document.addEventListener('freshrss:globalContextLoaded', init, false);
+        setTimeout(bootstrap, 0);
     }
 
     return {

@@ -61,6 +61,10 @@
 /* Conditions container */
 .fb-conditions {
   margin-bottom: 12px;
+  min-height: 56px;
+  border: 1px dashed var(--fb-border);
+  border-radius: 3px;
+  padding: 8px;
 }
 
 /* OR controls */
@@ -138,6 +142,11 @@
   gap: 8px;
   align-items: center;
   padding: 4px 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  flex-wrap: wrap;
 }
 
 .fb-condition-row .btn {
@@ -159,7 +168,9 @@
   display: flex;
   gap: 6px;
   align-items: center;
-  flex: 1;
+  flex: 1 1 220px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .fb-value-input,
@@ -169,6 +180,8 @@
   border: 1px solid var(--fb-border);
   border-radius: 3px;
   font-size: 12px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* OR divider */
@@ -227,7 +240,26 @@
   border: 1px solid var(--fb-border);
   border-radius: 3px;
   font-size: 12px;
-  min-width: 100px;
+  min-width: 96px;
+  max-width: 100%;
+  flex: 0 1 140px;
+}
+
+.fb-condition-row > * {
+  min-width: 0;
+}
+
+.fb-negate,
+.fb-remove,
+.fb-regex-toggle {
+  flex: 0 0 auto;
+}
+
+.fb-date-container,
+.fb-date-value,
+.fb-regex-modifiers {
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* Button states */
