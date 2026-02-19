@@ -1,0 +1,8 @@
+{
+    "name": "FilterBuilder",
+    "author": "xExtension-FilterBuilder",
+    "description": "Visual search filter builder for FreshRSS — build complex search queries with a point-and-click UI",
+    "version": "1.0.0",
+    "entrypoint": "FilterBuilder",
+    "type": "user"
+}
