@@ -1,0 +1,9 @@
+# Editor / IDE
+.idea/
+
+# Local agent/runtime artifacts
+.opencode/
+.sisyphus/
+
+# OS files
+.DS_Store
