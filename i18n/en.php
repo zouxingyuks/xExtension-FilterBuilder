@@ -1,0 +1,33 @@
+<?php
+declare(strict_types=1);
+
+return [
+    'toggle_btn' => 'Toggle Filter Builder',
+    'panel_title' => 'Filter Builder',
+    'add_condition' => 'Add Condition',
+    'add_or_group' => 'Add OR Group',
+    'remove' => 'Remove',
+    'negate' => 'Negate',
+    'regex_mode' => 'Regex Mode',
+    'case_insensitive' => 'Case Insensitive',
+    'multiline' => 'Multiline',
+    'preview_label' => 'Preview',
+    'fill_search' => 'Fill Search',
+    'search_now' => 'Search Now',
+    'load_from_search' => 'Load from Search',
+    'operator_intitle' => 'In Title',
+    'operator_intext' => 'In Text',
+    'operator_inurl' => 'In URL',
+    'operator_author' => 'Author',
+    'operator_tag' => 'Tag',
+    'operator_free' => 'Free',
+    'operator_f' => 'Feed',
+    'operator_c' => 'Category',
+    'operator_L' => 'Language',
+    'operator_label' => 'Label',
+    'operator_e' => 'Entry',
+    'operator_date' => 'Date',
+    'operator_pubdate' => 'Publication Date',
+    'operator_userdate' => 'User Date',
+    'operator_S' => 'Starred',
+];

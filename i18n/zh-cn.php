@@ -1,0 +1,33 @@
+<?php
+declare(strict_types=1);
+
+return [
+    'toggle_btn' => '切换筛选器构建器',
+    'panel_title' => '筛选器构建器',
+    'add_condition' => '添加条件',
+    'add_or_group' => '添加或组',
+    'remove' => '移除',
+    'negate' => '否定',
+    'regex_mode' => '正则表达式模式',
+    'case_insensitive' => '不区分大小写',
+    'multiline' => '多行',
+    'preview_label' => '预览',
+    'fill_search' => '填充搜索',
+    'search_now' => '立即搜索',
+    'load_from_search' => '从搜索加载',
+    'operator_intitle' => '在标题中',
+    'operator_intext' => '在文本中',
+    'operator_inurl' => '在URL中',
+    'operator_author' => '作者',
+    'operator_tag' => '标签',
+    'operator_free' => '免费',
+    'operator_f' => '源',
+    'operator_c' => '分类',
+    'operator_L' => '语言',
+    'operator_label' => '标签',
+    'operator_e' => '条目',
+    'operator_date' => '日期',
+    'operator_pubdate' => '发布日期',
+    'operator_userdate' => '用户日期',
+    'operator_S' => '已星标',
+];
